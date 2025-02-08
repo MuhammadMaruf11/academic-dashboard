@@ -1,8 +1,4 @@
-interface Student {
-    id: number;
-    name: string;
-    gpa: number;
-}
+import { Student } from "@/app/types/student";
 
 export default function TopStudents({ students }: { students: Student[] }) {
     const sortedStudents = students.sort((a, b) => b.gpa - a.gpa);

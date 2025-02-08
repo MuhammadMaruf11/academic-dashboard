@@ -1,11 +1,7 @@
-interface Course {
-    id: number;
-    name: string;
-    enrollment: number;
-}
+import { Course } from "@/app/types/course";
 
 export default function PopularCourses({ courses }: { courses: Course[] }) {
-    const sortedCourses = courses.sort((a, b) => b.enrollment - a.enrollment);
+    const sortedCourses = courses.sort((a, b) => b.enrollments - a.enrollments);
 
     return (
         <div className="p-6 bg-white shadow-lg rounded-lg">
@@ -14,7 +10,7 @@ export default function PopularCourses({ courses }: { courses: Course[] }) {
                 {sortedCourses.map((course) => (
                     <li key={course.id} className="flex justify-between p-2 border-b">
                         <span>{course.name}</span>
-                        <span className="font-bold">{course.enrollment}</span>
+                        <span className="font-bold">{course.enrollments}</span>
                     </li>
                 ))}
             </ul>

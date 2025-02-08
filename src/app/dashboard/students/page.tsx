@@ -1,31 +1,38 @@
 "use client";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { useState } from "react";
+import { Input } from "@/components/ui/input";
 
 const Student = () => {
-    const [students, setStudents] = useState([]);
     const [search, setSearch] = useState("");
 
-    useEffect(() => {
-        axios.get("/api/students").then((res) => setStudents(res.data));
-    }, []);
+    const { data: students = [], isLoading, isError } = useQuery({
+        queryKey: ["students"],
+        queryFn: () => api.get("/api/students").then((res) => res.data),
+    });
 
-    const filteredStudents = students.filter((student) =>
-        student.name.toLowerCase().includes(search.toLowerCase())
+    if (isLoading) return <p>Loading students...</p>;
+    if (isError) return <p>Error loading students.</p>;
+
+    const filteredStudents = students.filter((student: any) =>
+        student?.name.toLowerCase().includes(search.toLowerCase())
     );
 
     return (
-        <div>
-            <input
+        <div className="p-4">
+            <Input
                 type="text"
                 placeholder="Search Students"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="p-2 border rounded mb-4"
+                className="mb-4"
             />
-            <ul>
-                {filteredStudents.map((student) => (
-                    <li key={student.id}>{student.name} (GPA: {student.gpa})</li>
+            <ul className="space-y-2">
+                {filteredStudents.map((student: any) => (
+                    <li key={student.id} className="p-2 bg-gray-100 rounded-md">
+                        {student.name} (GPA: {student.gpa})
+                    </li>
                 ))}
             </ul>
         </div>

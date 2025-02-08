@@ -1,6 +1,7 @@
+import { Grade } from "@/app/types/grades";
 import { NextResponse } from "next/server";
 
-const grades = [
+const grades: Grade[] = [
   { studentId: 1, courseId: 101, grade: "A" },
   { studentId: 2, courseId: 102, grade: "B+" },
 ];

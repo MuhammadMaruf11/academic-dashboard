@@ -1,8 +1,5 @@
-interface Faculty {
-    id: number;
-    name: string;
-    department: string;
-}
+import { Faculty } from "@/app/types/faculty";
+
 
 export default function FacultyList({ faculty }: { faculty: Faculty[] }) {
     return (
