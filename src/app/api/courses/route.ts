@@ -22,30 +22,4 @@ export async function GET() {
   return NextResponse.json(courses);
 }
 
-export async function POST(req: Request) {
-  await connectDB();
-  const newCourse = await req.json();
-  const course = new Course(newCourse);
-  await course.save();
-  return NextResponse.json(course, { status: 201 });
-}
 
-// PATCH: Update course
-export async function PATCH(req: Request) {
-  await connectDB();
-  const { id, name, enrollments, facultyId } = await req.json();
-  const updatedCourse = await Course.findByIdAndUpdate(
-    id,
-    { name, enrollments, facultyId },
-    { new: true }
-  );
-  return NextResponse.json(updatedCourse);
-}
-
-// DELETE: Remove course
-export async function DELETE(req: Request) {
-  await connectDB();
-  const { id } = await req.json();
-  await Course.findByIdAndDelete(id);
-  return NextResponse.json({ message: "Course deleted" }, { status: 200 });
-}

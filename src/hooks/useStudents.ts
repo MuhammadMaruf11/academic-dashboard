@@ -19,7 +19,7 @@ export const useStudents = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["students"]);
+      queryClient.invalidateQueries(students);
     },
   });
 
@@ -29,7 +29,7 @@ export const useStudents = () => {
       return response.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["students"]);
+      queryClient.invalidateQueries(students);
     },
   });
 

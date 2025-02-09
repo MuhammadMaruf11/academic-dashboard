@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
+
 export const useCourses = () => {
   const queryClient = useQueryClient();
 
@@ -13,18 +14,21 @@ export const useCourses = () => {
     staleTime: 60000,
   });
 
-  const updateCourse = useMutation({
-    mutationFn: async (course: {
-      id: string;
-      name?: string;
-      enrollments?: string[];
-      facultyId?: string;
-    }) => {
-      const res = await api.patch("/courses", course);
-      return res.data;
-    },
-    onSuccess: () => queryClient.invalidateQueries(["courses"]),
-  });
+const updateCourse = useMutation({
+  mutationFn: async (course: {
+    id: string;
+    name?: string;
+    enrollments?: string[];
+    facultyId?: string;
+  }) => {
+    const res = await api.patch("/courses", course);
+    return res.data;
+  },
+  onSuccess: () => {
+    // Invalidate the 'courses' query to refetch the data
+    queryClient.invalidateQueries(courses);
+  },
+});
 
   return { courses, isLoading, updateCourse };
 };

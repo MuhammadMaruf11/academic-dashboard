@@ -2,26 +2,26 @@ import connectDB from "@/lib/mongo";
 import Student from "@/model/StudentModel";
 import { NextResponse } from "next/server";
 
+
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  await connectDB();
+  const { id } = await params;
+
   try {
-    await connectDB();
-
-    const { id } = params;
-
     const student = await Student.findById(id);
-
     if (!student) {
-      return NextResponse.json({ error: "Student not found" }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Student not found' },
+        { status: 404 }
+      );
     }
-
     return NextResponse.json(student);
   } catch (error) {
-    console.error("Error fetching student:", error);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { message: 'Error retrieving student', error },
       { status: 500 }
     );
   }
@@ -29,46 +29,33 @@ export async function GET(
 
 // PATCH: Update student
 export async function PATCH(
-  req: Request,
-  { params }: { params: { id: string } }
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
   await connectDB();
-
-  const { id } = params;
-  const updatedData = await req.json();
+  const { id } = await params;
 
   try {
-    const updatedStudent = await Student.findByIdAndUpdate(
-      id,
-      { $set: updatedData },
-      { new: true }
-    );
-
-    if (updatedStudent) {
-      return NextResponse.json({ success: true, student: updatedStudent });
-    } else {
+    const student = await Student.findById(id);
+    if (!student) {
       return NextResponse.json(
-        { success: false, error: "Student not found" },
+        { message: "Student not found" },
         { status: 404 }
       );
     }
+
+    // Parse the request body to get the updated student data
+    const updatedData = await request.json();
+
+    // Update the student's information
+    Object.assign(student, updatedData);
+    await student.save();
+
+    return NextResponse.json(student);
   } catch (error) {
-    console.error("Error updating student:", error);
     return NextResponse.json(
-      { success: false, error: "Failed to update student" },
+      { message: "Error updating student", error },
       { status: 500 }
     );
   }
-}
-
-// DELETE: Remove student
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } }
-) {
-  await connectDB();
-  const { id } = params;
-  //   const { id } = await req.json();
-  await Student.findByIdAndDelete(id);
-  return NextResponse.json({ message: "Student deleted" }, { status: 200 });
 }

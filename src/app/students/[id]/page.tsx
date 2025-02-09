@@ -1,12 +1,12 @@
 import StudentProfile from "@/components/StudentsComponent/StudentProfile";
 
-interface PageProps {
-    params: { id: string };
-}
-
-const Page: React.FC<PageProps> = ({ params }) => {
-    const { id } = params;
-
+export default async function Page({
+    params,
+}: {
+        params: Promise<{ id: string }>
+}) {
+    const id = (await params).id
+   
     return (
         <div>
             <StudentProfile slug={id} />
@@ -14,4 +14,4 @@ const Page: React.FC<PageProps> = ({ params }) => {
     );
 };
 
-export default Page;
+

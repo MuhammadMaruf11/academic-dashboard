@@ -22,10 +22,3 @@ export async function GET() {
   return NextResponse.json(students);
 }
 
-export async function POST(req: Request) {
-  await connectDB();
-  const newStudent = await req.json();
-  const student = new Student(newStudent);
-  await student.save();
-  return NextResponse.json(student, { status: 201 });
-}
