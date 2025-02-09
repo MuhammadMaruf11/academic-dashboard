@@ -1,66 +1,122 @@
+"use client"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Grade } from "@/app/types/grades";
-import { Faculty } from "@/app/types/faculty";
-import { api } from "@/lib/api";
+import { Student } from "@/types/student";
+import { cn } from "@/lib/utils";
+import { useSidebar } from "@/context/SidebarContext";
+import { useStudents } from "@/hooks/useStudents";
+import { useCourses } from "@/hooks/useCourses";
+import { Course } from "@/types/course";
 
-const FacultyPanel = () => {
-    const queryClient = useQueryClient();
-    const [gradeData, setGradeData] = useState<Grade>({ studentId: 0, courseId: 0, grade: "" });
 
-    const { data: facultyList } = useQuery<Faculty[]>({
-        queryKey: ["faculty"],
-        queryFn: () => api.get("/api/faculty").then(res => res.data),
-    });
 
-    const mutation = useMutation({
-        mutationFn: (newGrade: Grade) => api.post("/api/grades", newGrade),
-        onSuccess: () => queryClient.invalidateQueries(["grades"]),
-    });
+export default function FacultyPanel() {
 
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        mutation.mutate(gradeData);
+    const { isCollapsed } = useSidebar();
+
+    const { students, isLoading: studentsLoading, updateGpa, updateCourse } = useStudents();
+    const { courses, isLoading: coursesLoading } = useCourses();
+
+    const [selectedStudentId, setSelectedStudentId] = useState<string>('');
+    const [newGpa, setNewGpa] = useState<number | ''>('');
+
+    const [selectedCourse, setSelectedCourse] = useState<string | null>(null);
+
+
+
+    const handleUpdateGpa = () => {
+        if (selectedStudentId && newGpa !== '') {
+            updateGpa.mutate({ id: selectedStudentId, gpa: newGpa });
+        }
     };
 
+
+    const handleUpdateCourse = () => {
+        if (selectedStudentId && selectedCourse !== '') {
+            updateCourse.mutate({ id: selectedStudentId, courses: Number(selectedCourse) });
+        }
+    };
+
+
+    // Check if data is loading
+    if (studentsLoading || coursesLoading) {
+        return <div className={cn("", isCollapsed ? "ml-20" : "ml-60")}>Loading...</div>;
+    }
+
     return (
-        <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">👨‍🏫 Faculty Panel</h2>
+        <div className={cn("space-y-6 md:text-base text-xs", isCollapsed ? "md:ml-16 ml-0" : "md:ml-60 ml-12")}>
+            <h1 className="md:text-2xl text-base font-semibold mb-4">Faculty Panel</h1>
 
-            <ul className="space-y-3">
-                {facultyList?.map((faculty) => (
-                    <li key={faculty.id} className="p-4 border rounded-lg hover:bg-gray-100 transition">
-                        <span className="font-medium">{faculty.name}</span>
-                    </li>
-                ))}
-            </ul>
+            {/* Update Student Grades */}
+            <div className="bg-white shadow p-4 rounded-lg mb-6">
+                <h2 className="md:text-lg text-sm font-semibold mb-2">Update Student Grades</h2>
+                <div className="flex flex-wrap items-center gap-4">
+                    <Select onValueChange={setSelectedStudentId}>
+                        <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Select Student" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {students.map((student: Student) => (
+                                <SelectItem key={student._id} value={student._id}>
+                                    {student.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
-            <h3 className="text-xl font-semibold mt-6">Assign Grades</h3>
-            <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-                <input
-                    type="number"
-                    placeholder="Student ID"
-                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => setGradeData({ ...gradeData, studentId: Number(e.target.value) })}
-                />
-                <input
-                    type="number"
-                    placeholder="Course ID"
-                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => setGradeData({ ...gradeData, courseId: Number(e.target.value) })}
-                />
-                <input
-                    type="text"
-                    placeholder="Grade"
-                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => setGradeData({ ...gradeData, grade: e.target.value })}
-                />
-                <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700 transition">
-                    Submit
-                </button>
-            </form>
+                    <Input
+                        type="number"
+                        value={newGpa}
+                        onChange={(e) => setNewGpa(parseFloat(e.target.value))}
+                        placeholder="Enter New GPA"
+                        className="w-[150px]"
+                    />
+
+                    <Button onClick={handleUpdateGpa} disabled={studentsLoading}>
+                        {studentsLoading ? 'Updating...' : 'Update Grade'}
+                    </Button>
+                </div>
+            </div>
+
+            {/* Assign Student to Course */}
+            <div className="bg-white shadow p-4 rounded-lg">
+                <h2 className="md:text-lg text-sm font-semibold mb-2">Assign Student to Course</h2>
+                <div className="flex flex-wrap items-center gap-4">
+                    <Select onValueChange={setSelectedStudentId}>
+                        <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Select Student" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {students.map((student: Student) => (
+                                <SelectItem key={student._id} value={student._id.toString()}>
+                                    {student.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Select onValueChange={setSelectedCourse}>
+                        <SelectTrigger className="w-[200px]">
+                            <SelectValue placeholder="Select Course" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {courses.map((course: Course) => (
+                                <SelectItem key={course.code} value={course.code.toString()}>
+                                    {course.name}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+
+                    <Button
+                        onClick={handleUpdateCourse}
+                    >
+                        Assign to Course
+                    </Button>
+                </div>
+            </div>
         </div>
     );
-};
-
-export default FacultyPanel;
+}

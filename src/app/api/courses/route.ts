@@ -1,12 +1,51 @@
-import { Course } from "@/app/types/course";
+import connectDB from "@/lib/mongo";
+import Course from "@/model/CourseModel";
 import { NextResponse } from "next/server";
 
-const courses: Course[] = [
-  { id: 101, name: "Math 101", enrollments: 120, facultyId: 1 },
-  { id: 102, name: "Physics 201", enrollments: 100, facultyId: 1 },
-  { id: 103, name: "History 303", enrollments: 90, facultyId: 2 },
-];
+// Mongoose model
 
 export async function GET() {
+  await connectDB();
+  const courses = await Course.find();
+
+  // If no courses exist, insert dummy data
+  if (courses.length === 0) {
+    const dummyCourses = [
+      { code: 101, name: "Math", enrollments: "80", facultyId: "" },
+      { code: 201, name: "Computer Science", enrollments: "95", facultyId: "" },
+      { code: 301, name: "History", enrollments: "35", facultyId: "" },
+    ];
+    await Course.insertMany(dummyCourses);
+    return NextResponse.json(dummyCourses, { status: 201 });
+  }
+
   return NextResponse.json(courses);
+}
+
+export async function POST(req: Request) {
+  await connectDB();
+  const newCourse = await req.json();
+  const course = new Course(newCourse);
+  await course.save();
+  return NextResponse.json(course, { status: 201 });
+}
+
+// PATCH: Update course
+export async function PATCH(req: Request) {
+  await connectDB();
+  const { id, name, enrollments, facultyId } = await req.json();
+  const updatedCourse = await Course.findByIdAndUpdate(
+    id,
+    { name, enrollments, facultyId },
+    { new: true }
+  );
+  return NextResponse.json(updatedCourse);
+}
+
+// DELETE: Remove course
+export async function DELETE(req: Request) {
+  await connectDB();
+  const { id } = await req.json();
+  await Course.findByIdAndDelete(id);
+  return NextResponse.json({ message: "Course deleted" }, { status: 200 });
 }

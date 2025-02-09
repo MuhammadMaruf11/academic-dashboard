@@ -34,15 +34,17 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Providers>
-          <SidebarProvider>
+        <SidebarProvider>
+          <Providers>
             <Sidebar />
             <>
               <Navbar />
-              <main className="px-5 py-20 ">{children}</main>
+              <main className="md:px-5 px-3 py-20 ">
+                {children}
+              </main>
             </>
-          </SidebarProvider>
-        </Providers>
+          </Providers>
+        </SidebarProvider>
       </body>
     </html>
   );

@@ -1,11 +1,31 @@
-import { Student } from "@/app/types/student";
+import connectDB from "@/lib/mongo";
+import Student from "@/model/StudentModel";
 import { NextResponse } from "next/server";
 
-const students: Student[] = [
-  { id: 1, name: "Alice Johnson", gpa: 3.9, courses: [101, 102], year: 2013 },
-  { id: 2, name: "Bob Smith", gpa: 3.8, courses: [103], year: 2015 },
-];
+// Mongoose model
 
 export async function GET() {
+  await connectDB();
+  const students = await Student.find();
+
+  // If no students exist, insert dummy data
+  if (students.length === 0) {
+    const dummyStudents = [
+      { name: "John Doe", gpa: 3.8, courses: [101], year: 2 },
+      { name: "Jane Smith", gpa: 3.5, courses: [201], year: 1 },
+      { name: "Alice Smith", gpa: 2.7, courses: [201, 301], year: 3 },
+    ];
+    await Student.insertMany(dummyStudents);
+    return NextResponse.json(dummyStudents, { status: 201 });
+  }
+
   return NextResponse.json(students);
+}
+
+export async function POST(req: Request) {
+  await connectDB();
+  const newStudent = await req.json();
+  const student = new Student(newStudent);
+  await student.save();
+  return NextResponse.json(student, { status: 201 });
 }
